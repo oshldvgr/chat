@@ -3,6 +3,8 @@ package ru.shadrina.messenger.client;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import ru.shadrina.messenger.ChatContent;
+import ru.shadrina.messenger.ReadMessage;
+import ru.shadrina.messenger.SendMessage;
 import ru.shadrina.messenger.config.Config;
 
 import java.io.PrintWriter;
@@ -31,14 +33,18 @@ public class ChatClient implements ChatContent {
         message = new Scanner(System.in);
         out = new PrintWriter(socket.getOutputStream());
         while (!socket.isOutputShutdown()) {
-            //пока есть соединение запускаем потоки для чтения и записи на сервер
+            //пока есть соединение запускаем поток для чтения и пишем на сервер
             // это у меня отдельный поток для постоянного чтения данных с сервера
-            executor.execute(new readServerMessage(in));
-            //это поток для отправки собщений на сервер
-            executor.execute(new writeClientMessage(out));
+            executor.execute(new ReadMessage(in));
+            executor.execute(new SendMessage(out, message));
+
+
+
         }
         //закрываю потоки после разрыва соединения
         executor.shutdown();
     }
+
+
 }
 
